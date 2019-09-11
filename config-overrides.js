@@ -6,9 +6,11 @@ module.exports = function override(config) {
 
   return {
     ...config,
+    devtool: false,
     plugins: [
       new HtmlWebpackPlugin({
         ...htmlPlugin.options,
+        filename: "parser.html",
         inlineSource: ".(js|css)$"
       }),
       new HtmlWebpackInlineSourcePlugin(HtmlWebpackPlugin),
