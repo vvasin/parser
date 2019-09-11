@@ -2,22 +2,20 @@ import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { Button, Spinner, Alert, Row, Col } from "react-bootstrap";
 import XLSX from "xlsx";
 
+import { saveWorkbook } from "./utils";
+
 const Parser = ({ filesToParse, setResult }) => {
   const [loading, setLoading] = useState(false);
   const [filesContent, setFilesContent] = useState([]);
-  const unhandledFiles = useMemo(
-    () =>
-      filesContent.filter(({ workbook }) => !workbook).map(({ file }) => file),
+  const handledFilesContent = useMemo(
+    () => filesContent.filter(({ workbook }) => !!workbook),
     [filesContent]
   );
-  const workbooks = useMemo(
-    () =>
-      filesContent
-        .filter(({ workbook }) => !!workbook)
-        .map(({ workbook }) => workbook),
+  const unhandledFilesContent = useMemo(
+    () => filesContent.filter(({ workbook }) => !workbook),
     [filesContent]
   );
-  const disabled = workbooks.length === 0 || loading;
+  const disabled = handledFilesContent.length === 0 || loading;
 
   const handleClick = useCallback(() => {
     if (disabled) {
@@ -26,13 +24,9 @@ const Parser = ({ filesToParse, setResult }) => {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      setResult(
-        workbooks.map(workbook => {
-          return workbook.Props;
-        })
-      );
-    }, 500 + 500 * Math.random());
-  }, [workbooks, disabled, setResult]);
+      setResult(handledFilesContent.map(saveWorkbook));
+    }, 0);
+  }, [handledFilesContent, disabled, setResult]);
 
   useEffect(() => {
     if (filesToParse.length === 0) {
@@ -55,7 +49,7 @@ const Parser = ({ filesToParse, setResult }) => {
 
     const handleError = ({ target: reader }) => {
       const { file } = reader;
-      filesContent.push({ file });
+      filesContent.push({ file, key: Math.random() });
       removeReader(reader);
     };
 
@@ -64,9 +58,9 @@ const Parser = ({ filesToParse, setResult }) => {
       try {
         const data = new Uint8Array(result);
         const workbook = XLSX.read(data, { type: "array" });
-        filesContent.push({ file, workbook });
+        filesContent.push({ file, workbook, key: Math.random() });
       } catch (e) {
-        filesContent.push({ file });
+        filesContent.push({ file, key: Math.random() });
       }
       removeReader(reader);
     };
@@ -95,11 +89,11 @@ const Parser = ({ filesToParse, setResult }) => {
     <>
       <Row>
         <Col>
-          {unhandledFiles.length > 0 && (
+          {unhandledFilesContent.length > 0 && (
             <Alert variant="warning">
               Не удалось прочитать следующие файлы:
-              {unhandledFiles.map(({ name }) => (
-                <div key={name}>{name}</div>
+              {unhandledFilesContent.map(({ file: { name }, key }) => (
+                <div key={key}>{name}</div>
               ))}
             </Alert>
           )}

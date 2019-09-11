@@ -50,11 +50,7 @@ const App = () => {
               </Col>
             </Row>
             <Parser filesToParse={filesToParse} setResult={setParseResult} />
-            <Row>
-              <Col>
-                <ParserResult result={parseResult} />
-              </Col>
-            </Row>
+            <ParserResult result={parseResult} />
           </Col>
           <Col />
         </Row>
